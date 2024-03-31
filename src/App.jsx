@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button.jsx";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Separator } from "@/components/ui/separator.jsx";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.jsx";
 import "./App.css";
 
 const transcriptions = [
@@ -21,9 +22,9 @@ const transcriptions = [
 
 function App() {
   const [data, setData] = useState(transcriptions);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const handleRetry = (id) => {
-    // Simulating retry logic
     const updatedData = data.map((item) => {
       if (item.id === id) {
         return { ...item, size: Math.floor(Math.random() * 20), summary: "Retried transcription", status: "success" };
@@ -33,12 +34,43 @@ function App() {
     setData(updatedData);
   };
 
+  const handleStatusFilterChange = (value) => {
+    setStatusFilter(value);
+  };
+
+  const filteredData = data.filter((item) => {
+    if (statusFilter === "all") return true;
+    return item.status === statusFilter;
+  });
+
+  const handleClearFilter = () => {
+    setStatusFilter("all");
+  };
+
   return (
     <Card className="container mx-auto mt-8">
       <CardHeader>
         <CardTitle>Transcriptions</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 flex items-center space-x-2">
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="success">Success</SelectItem>
+              <SelectItem value="transcription_failure">Transcription Failure</SelectItem>
+              <SelectItem value="chatgpt4_failure">ChatGPT4 Failure</SelectItem>
+            </SelectContent>
+          </Select>
+          {statusFilter !== "all" && (
+            <Button variant="outline" size="sm" onClick={handleClearFilter}>
+              Clear Filter
+            </Button>
+          )}
+        </div>
         <Table>
           <TableCaption>A list of transcriptions</TableCaption>
           <TableHeader>
@@ -52,7 +84,7 @@ function App() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
+            {filteredData.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.date}</TableCell>
